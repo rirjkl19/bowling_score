@@ -1,7 +1,8 @@
+import 'dart:math';
+
 import 'package:bowling_score/logic/scoring.dart';
 import 'package:bowling_score/widgets/frame_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({Key? key}) : super(key: key);
@@ -12,14 +13,6 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   final Scoring scoring = Scoring();
-  late final textController = TextEditingController();
-  int knockPin = 0;
-
-  @override
-  void dispose() {
-    textController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,32 +42,20 @@ class _MainScreenState extends State<MainScreen> {
                     child: const Text('Random Roll'),
                   ),
                   const SizedBox(height: 20),
-                  Row(
+                  Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      SizedBox(
-                        width: 50,
-                        child: TextFormField(
-                          controller: textController,
-                          maxLines: 1,
-                          decoration: const InputDecoration(isDense: true),
-                          inputFormatters: [
-                            FilteringTextInputFormatter.digitsOnly,
-                          ],
-                          autovalidateMode: AutovalidateMode.always,
-                          onChanged: (val) {
-                            knockPin = int.tryParse(val) ?? 0;
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      MaterialButton(
-                        color: Colors.yellow,
-                        onPressed: indicatedRoll,
-                        child: const Text('Indicated Roll'),
-                      ),
+                      numpadRow([1, 2, 3]),
+                      numpadRow([4, 5, 6]),
+                      numpadRow([7, 8, 9]),
                     ],
                   ),
+
+                  // MaterialButton(
+                  //   color: Colors.yellow,
+                  //   onPressed: indicatedRoll,
+                  //   child: const Text('Indicated Roll'),
+                  // ),
                   const SizedBox(height: 20),
                   MaterialButton(
                     color: Colors.green,
@@ -100,7 +81,7 @@ class _MainScreenState extends State<MainScreen> {
                   const SizedBox(height: 16),
                   MaterialButton(
                     color: Colors.redAccent,
-                    onPressed: scoring.restart,
+                    onPressed: restart,
                     child: const Text('Restart'),
                   ),
                 ],
@@ -112,21 +93,46 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
+  Widget numpadRow(List<int> count) {
+    return Row(
+        children: count.map((e) {
+      return Container(
+        padding: const EdgeInsets.symmetric(vertical: 2),
+        width: 20,
+        child: MaterialButton(
+          color: Colors.grey,
+          onPressed: scoring.curentFrameModel.remainingPins >= e
+              ? () => indicatedRoll(e)
+              : null,
+          child: Text(e.toString()),
+        ),
+      );
+    }).toList());
+  }
+
+  void restart() {
+    setState(() {
+      scoring.restart();
+    });
+  }
+
   void strikeRoll() {
     setState(() {
       scoring.roll(10);
     });
   }
 
-  void indicatedRoll() {
+  void indicatedRoll(int pin) {
     setState(() {
-      scoring.roll(knockPin);
+      scoring.roll(pin);
     });
   }
 
   void randomroll() {
-    // TODO: Do a random roll
-    throw UnimplementedError('Random roll is unimplemented yet');
+    final knockedPin = Random().nextInt(scoring.curentFrameModel.remainingPins);
+    setState(() {
+      scoring.roll(knockedPin);
+    });
   }
 
   void gutterRoll() {

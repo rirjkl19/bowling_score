@@ -11,8 +11,11 @@ class Scoring {
   List<FrameModel> frames = [];
   int currentFrameId = 0;
 
+  FrameModel get curentFrameModel => frames[currentFrameId];
+
   /// Restart the current [frames] to initial scoring.
   void restart() {
+    currentFrameId = 0;
     frames = List.generate(frameCount, (index) {
       if (index == 0) {
         return RegularFrameModel(id: index, frameTurn: FrameTurn.first);
@@ -22,6 +25,11 @@ class Scoring {
         return FinalFrameModel(id: index);
       }
     });
+  }
+
+  void undoRoll() {
+    currentFrameId--;
+    frames[currentFrameId];
   }
 
   void roll(int knockedPin) {
@@ -110,6 +118,7 @@ class Scoring {
   /// Handler if the current frame has 1 previous frame that is [FrameState.isSpare].
   /// - Will add previous total score with current score to the previous frame.
   void _handleSpareFirstTurn() {
+    if (currentFrameId < 2) return;
     if (frames[currentFrameId - 1].frameState == FrameState.isSpare) {
       final prevTotal = (frames[currentFrameId - 2].total ?? 0) +
           frames[currentFrameId - 1].totalTurnScore +
@@ -154,10 +163,16 @@ class Scoring {
 
   /// Handler of frame's total score when the current frame's 2nd turn is a regular roll.
   void _handleAddTotalSecondTurn() {
-    final curTotal = (frames[currentFrameId - 1].total ?? 0) +
-        frames[currentFrameId].totalTurnScore;
-    // Set current frame's total
-    frames[currentFrameId].total = curTotal;
+    if (currentFrameId == 0) {
+      final curTotal = frames[currentFrameId].totalTurnScore;
+      // Set current frame's total
+      frames[currentFrameId].total = curTotal;
+    } else {
+      final curTotal = (frames[currentFrameId - 1].total ?? 0) +
+          frames[currentFrameId].totalTurnScore;
+      // Set current frame's total
+      frames[currentFrameId].total = curTotal;
+    }
   }
 
   /// Move the current frame into the next one.

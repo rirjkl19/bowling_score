@@ -30,7 +30,7 @@ class FrameWidget extends StatelessWidget {
             children: [
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: Text('${model.first ?? ''}'),
+                child: Text(firstScoreDisplay),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -41,7 +41,7 @@ class FrameWidget extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 4),
                   decoration: BoxDecoration(border: Border.all()),
-                  child: Text('${(model as FinalFrameModel).third ?? ''}'),
+                  child: Text(thirdScoreDisplay),
                 ),
             ],
           ),
@@ -51,14 +51,70 @@ class FrameWidget extends StatelessWidget {
     );
   }
 
+  String get firstScoreDisplay {
+    if (model.runtimeType == FinalFrameModel) {
+      switch (model.first) {
+        case 0:
+          return '-';
+        case 10:
+          return 'X';
+        default:
+          return '${model.first ?? ''}';
+      }
+    } else {
+      switch (model.frameState) {
+        case FrameState.none:
+          return '${model.first ?? ''}';
+        case FrameState.isStrike:
+          return '';
+        case FrameState.isSpare:
+          return '${model.first ?? ''}';
+      }
+    }
+  }
+
   String get secondScoreDisplay {
-    switch (model.frameState) {
-      case FrameState.none:
-        return '${model.second ?? ''}';
-      case FrameState.isStrike:
-        return 'X';
-      case FrameState.isSpare:
-        return '/';
+    if (model.runtimeType == FinalFrameModel) {
+      switch (model.second) {
+        case 0:
+          return '-';
+        case 10:
+          return 'X';
+        default:
+          return '${model.second ?? ''}';
+      }
+    } else {
+      switch (model.frameState) {
+        case FrameState.none:
+          return '${model.second ?? ''}';
+        case FrameState.isStrike:
+          return 'X';
+        case FrameState.isSpare:
+          return '/';
+      }
+    }
+  }
+
+  String get thirdScoreDisplay {
+    if (model.runtimeType == FinalFrameModel) {
+      final frame = model as FinalFrameModel;
+      switch (frame.third) {
+        case 0:
+          return '-';
+        case 10:
+          return 'X';
+        default:
+          return '${frame.third ?? ''}';
+      }
+    } else {
+      switch (model.frameState) {
+        case FrameState.none:
+          return '${model.second ?? ''}';
+        case FrameState.isStrike:
+          return 'X';
+        case FrameState.isSpare:
+          return '/';
+      }
     }
   }
 }

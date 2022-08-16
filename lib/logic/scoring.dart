@@ -10,11 +10,13 @@ class Scoring {
 
   List<FrameModel> frames = [];
   int currentFrameId = 0;
+  bool gameEnded = false;
 
   FrameModel get curentFrameModel => frames[currentFrameId];
 
   /// Restart the current [frames] to initial scoring.
   void restart() {
+    gameEnded = false;
     currentFrameId = 0;
     frames = List.generate(frameCount, (index) {
       if (index == 0) {
@@ -43,7 +45,7 @@ class Scoring {
               ..frameTurn = FrameTurn.ended;
 
             _handleDoubleStrikeFirstTurn();
-            _handleSpareFirstTurn();
+            _handleSpare();
             _moveNextFrame();
           } else {
             // * Regular roll
@@ -53,7 +55,7 @@ class Scoring {
               ..frameTurn = FrameTurn.second;
 
             _handleDoubleStrikeFirstTurn();
-            _handleSpareFirstTurn();
+            _handleSpare();
           }
 
           break;
@@ -65,7 +67,7 @@ class Scoring {
               ..frameTurn = FrameTurn.ended
               ..frameState = FrameState.isSpare;
 
-            _handleOneStrikeSecondTurn();
+            _handleOneStrike();
             _moveNextFrame();
           } else {
             // * Regular roll
@@ -75,7 +77,7 @@ class Scoring {
               ..frameTurn = FrameTurn.ended;
 
             _handleDoubleStrikeSecondTurn();
-            _handleOneStrikeSecondTurn();
+            _handleOneStrike();
             _handleAddTotalSecondTurn();
 
             _moveNextFrame();
@@ -83,11 +85,64 @@ class Scoring {
 
           break;
         case FrameTurn.third:
-          break;
+          throw UnimplementedError('Regular frames doesn\t have a third round');
         case FrameTurn.ended:
-          break;
+          throw UnimplementedError('This frame should not be able to roll');
       }
     } else if (frames[currentFrameId].runtimeType == FinalFrameModel) {
+      switch (frames[currentFrameId].frameTurn) {
+        case FrameTurn.waiting:
+          throw Exception(
+              'Current frame is waiting (should be atleast in turn)');
+        case FrameTurn.first:
+          if (knockedPin == 10) {
+            // * Strike Roll
+            frames[currentFrameId]
+              ..first = knockedPin
+              ..frameState = FrameState.isStrike
+              ..frameTurn = FrameTurn.second;
+          }
+
+          // * Regular roll
+          frames[currentFrameId]
+            ..first = knockedPin
+            ..frameTurn = FrameTurn.second;
+          break;
+        case FrameTurn.second:
+          if (knockedPin == 10) {
+            // * Strike Roll
+            frames[currentFrameId]
+              ..second = knockedPin
+              ..frameState = FrameState.isStrike
+              ..frameTurn = FrameTurn.third;
+          }
+
+          // * Regular roll
+          frames[currentFrameId]
+            ..second = knockedPin
+            ..frameTurn = FrameTurn.third;
+
+          break;
+        case FrameTurn.third:
+          if (knockedPin == 10) {
+            // * Strike Roll
+            frames[currentFrameId] as FinalFrameModel
+              ..third = knockedPin
+              ..frameState = FrameState.isStrike
+              ..frameTurn = FrameTurn.ended;
+          }
+
+          // * Regular roll
+          frames[currentFrameId] as FinalFrameModel
+            ..third = knockedPin
+            ..frameTurn = FrameTurn.ended;
+          gameEnded = true;
+
+          break;
+        case FrameTurn.ended:
+          gameEnded = true;
+          break;
+      }
     } else {
       throw Exception('Invalid FrameModel');
     }
@@ -112,31 +167,6 @@ class Scoring {
     }
   }
 
-  /// Handler if the current frame has 1 previous frame that is [FrameState.isSpare].
-  /// - Will add previous total score with current score to the previous frame.
-  void _handleSpareFirstTurn() {
-    if (currentFrameId < 2) return;
-    if (frames[currentFrameId - 1].frameState == FrameState.isSpare) {
-      final prevTotal = (frames[currentFrameId - 2].total ?? 0) +
-          frames[currentFrameId - 1].totalTurnScore +
-          (frames[currentFrameId].totalTurnScore);
-
-      frames[currentFrameId - 1].total = prevTotal;
-    }
-  }
-
-  /// Handler if the current frame has 1 previous frame that is [FrameState.isStrike].
-  void _handleOneStrikeSecondTurn() {
-    if (currentFrameId < 2) return;
-    if (frames[currentFrameId - 1].frameState == FrameState.isStrike) {
-      int prevTotal = (frames[currentFrameId - 2].total ?? 0) +
-          frames[currentFrameId - 1].totalTurnScore +
-          frames[currentFrameId].totalTurnScore;
-
-      frames[currentFrameId - 1].total = prevTotal;
-    }
-  }
-
   /// Handler if the current frame has 2 previous frame that is [FrameState.isStrike].
   void _handleDoubleStrikeSecondTurn() {
     if (currentFrameId < 2) return;
@@ -155,6 +185,31 @@ class Scoring {
         // Set current frame's total
         frames[currentFrameId].total = curTotal;
       }
+    }
+  }
+
+  /// Handler if the current frame has 1 previous frame that is [FrameState.isSpare].
+  /// - Will add previous total score with current score to the previous frame.
+  void _handleSpare() {
+    if (currentFrameId < 2) return;
+    if (frames[currentFrameId - 1].frameState == FrameState.isSpare) {
+      final prevTotal = (frames[currentFrameId - 2].total ?? 0) +
+          frames[currentFrameId - 1].totalTurnScore +
+          (frames[currentFrameId].totalTurnScore);
+
+      frames[currentFrameId - 1].total = prevTotal;
+    }
+  }
+
+  /// Handler if the current frame has 1 previous frame that is [FrameState.isStrike].
+  void _handleOneStrike() {
+    if (currentFrameId < 2) return;
+    if (frames[currentFrameId - 1].frameState == FrameState.isStrike) {
+      int prevTotal = (frames[currentFrameId - 2].total ?? 0) +
+          frames[currentFrameId - 1].totalTurnScore +
+          frames[currentFrameId].totalTurnScore;
+
+      frames[currentFrameId - 1].total = prevTotal;
     }
   }
 

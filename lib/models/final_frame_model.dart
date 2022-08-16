@@ -10,7 +10,7 @@ class FinalFrameModel extends FrameModel {
     super.frameState,
   });
 
-  final int? third;
+  int? third;
 
   @override
   int get remainingPins => 10;

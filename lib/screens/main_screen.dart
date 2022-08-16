@@ -16,6 +16,27 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (scoring.gameEnded) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        showDialog(
+            context: context,
+            builder: (context) {
+              return AlertDialog(
+                title: const Text('Game ended'),
+                actions: [
+                  MaterialButton(
+                    onPressed: () {
+                      restart();
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text('Restart game'),
+                  ),
+                ],
+              );
+            });
+      });
+    }
+
     return Scaffold(
       appBar: AppBar(title: const Text('Bowling Scorer')),
       body: Column(

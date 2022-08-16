@@ -12,7 +12,7 @@ class Scoring {
   int currentFrameId = 0;
   bool gameEnded = false;
 
-  FrameModel get curentFrameModel => frames[currentFrameId];
+  FrameModel get currentFrameModel => frames[currentFrameId];
 
   /// Restart the current [frames] to initial scoring.
   void restart() {
@@ -41,8 +41,7 @@ class Scoring {
             // * Strike Roll
             frames[currentFrameId]
               ..second = knockedPin
-              ..frameState = FrameState.isStrike
-              ..frameTurn = FrameTurn.ended;
+              ..frameState = FrameState.isStrike;
 
             _handleDoubleStrikeFirstTurn();
             _handleSpare();
@@ -64,7 +63,6 @@ class Scoring {
             // * Spare Roll
             frames[currentFrameId]
               ..second = knockedPin
-              ..frameTurn = FrameTurn.ended
               ..frameState = FrameState.isSpare;
 
             _handleOneStrike();
@@ -72,9 +70,7 @@ class Scoring {
           } else {
             // * Regular roll
 
-            frames[currentFrameId]
-              ..second = knockedPin
-              ..frameTurn = FrameTurn.ended;
+            frames[currentFrameId].second = knockedPin;
 
             _handleDoubleStrikeSecondTurn();
             _handleOneStrike();
@@ -86,8 +82,6 @@ class Scoring {
           break;
         case FrameTurn.third:
           throw UnimplementedError('Regular frames doesn\t have a third round');
-        case FrameTurn.ended:
-          throw UnimplementedError('This frame should not be able to roll');
       }
     } else if (frames[currentFrameId].runtimeType == FinalFrameModel) {
       switch (frames[currentFrameId].frameTurn) {
@@ -97,49 +91,64 @@ class Scoring {
         case FrameTurn.first:
           if (knockedPin == 10) {
             // * Strike Roll
-            frames[currentFrameId]
+            frames[currentFrameId] as FinalFrameModel
               ..first = knockedPin
-              ..frameState = FrameState.isStrike
+              ..hasBonus = true
               ..frameTurn = FrameTurn.second;
+
+            _handleDoubleStrikeFirstTurn();
+            _handleSpare();
+
+            break;
           }
 
           // * Regular roll
           frames[currentFrameId]
             ..first = knockedPin
             ..frameTurn = FrameTurn.second;
+
           break;
         case FrameTurn.second:
           if (knockedPin == 10) {
             // * Strike Roll
+            frames[currentFrameId] as FinalFrameModel
+              ..second = knockedPin
+              ..hasBonus = true
+              ..frameTurn = FrameTurn.third;
+
+            _handleOneStrike();
+
+            break;
+          }
+
+          if (frames[currentFrameId].remainingPins == knockedPin) {
+            // * Spare roll
+            frames[currentFrameId] as FinalFrameModel
+              ..second = knockedPin
+              ..hasBonus = true
+              ..frameTurn = FrameTurn.third;
+
+            break;
+          } else {
+            // * Regular roll
             frames[currentFrameId]
               ..second = knockedPin
-              ..frameState = FrameState.isStrike
               ..frameTurn = FrameTurn.third;
           }
 
-          // * Regular roll
-          frames[currentFrameId]
-            ..second = knockedPin
-            ..frameTurn = FrameTurn.third;
+          gameEnded = !(currentFrameModel as FinalFrameModel).hasBonus;
 
           break;
         case FrameTurn.third:
           if (knockedPin == 10) {
             // * Strike Roll
-            frames[currentFrameId] as FinalFrameModel
-              ..third = knockedPin
-              ..frameState = FrameState.isStrike
-              ..frameTurn = FrameTurn.ended;
+            (frames[currentFrameId] as FinalFrameModel).third = knockedPin;
+            _handleAddTotalSecondTurn();
           }
 
           // * Regular roll
-          frames[currentFrameId] as FinalFrameModel
-            ..third = knockedPin
-            ..frameTurn = FrameTurn.ended;
-          gameEnded = true;
-
-          break;
-        case FrameTurn.ended:
+          (frames[currentFrameId] as FinalFrameModel).third = knockedPin;
+          _handleAddTotalSecondTurn();
           gameEnded = true;
           break;
       }
@@ -220,8 +229,6 @@ class Scoring {
       // Set current frame's total
       frames[currentFrameId].total = curTotal;
     } else {
-      // if (frames[currentFrameId - 1].frameState == FrameState.isSpare) {}
-
       final curTotal = (frames[currentFrameId - 1].total ?? 0) +
           frames[currentFrameId].totalTurnScore;
       // Set current frame's total

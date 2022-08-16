@@ -1,7 +1,9 @@
 import 'dart:math';
 
 import 'package:bowling_score/logic/scoring.dart';
+import 'package:bowling_score/models/final_frame_model.dart';
 import 'package:bowling_score/widgets/frame_widget.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class MainScreen extends StatefulWidget {
@@ -13,10 +15,11 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   final Scoring scoring = Scoring();
+  bool isDialogShown = false;
 
   @override
   Widget build(BuildContext context) {
-    if (scoring.gameEnded) {
+    if (scoring.gameEnded && !isDialogShown) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         showDialog(
             context: context,
@@ -27,6 +30,7 @@ class _MainScreenState extends State<MainScreen> {
                   MaterialButton(
                     onPressed: () {
                       restart();
+                      isDialogShown = false;
                       Navigator.of(context).pop();
                     },
                     child: const Text('Restart game'),
@@ -39,69 +43,78 @@ class _MainScreenState extends State<MainScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Bowling Scorer')),
-      body: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
+      body: Container(
+        alignment: Alignment.center,
+        color: Colors.grey.shade300,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
-            children: scoring.frames
-                .map((frame) => FrameWidget(
-                      isSelected: frame.id == scoring.currentFrameId,
-                      model: frame,
-                    ))
-                .toList(),
-          ),
-          const SizedBox(height: 20),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Column(
+              Text('Current Frame: ${scoring.currentFrameId + 1}'),
+              Text('Current Turn:'
+                  ' ${describeEnum(scoring.currentFrameModel.frameTurn)}'),
+              Text('Remaining pin: ${scoring.currentFrameModel.remainingPins}'),
+              const SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: scoring.frames
+                    .map((frame) => FrameWidget(
+                          isSelected: frame.id == scoring.currentFrameId,
+                          model: frame,
+                        ))
+                    .toList(),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  MaterialButton(
-                    color: Colors.blue,
-                    onPressed: randomroll,
-                    child: const Text('Random Roll'),
-                  ),
-                  const SizedBox(height: 20),
                   Column(
-                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      numpadRow([1, 2, 3]),
-                      numpadRow([4, 5, 6]),
-                      numpadRow([7, 8, 9]),
+                      MaterialButton(
+                        color: Colors.blue,
+                        onPressed: randomroll,
+                        child: const Text('Random Roll'),
+                      ),
+                      const SizedBox(height: 20),
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          numpadRow([1, 2, 3]),
+                          numpadRow([4, 5, 6]),
+                          numpadRow([7, 8, 9]),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      MaterialButton(
+                        color: Colors.green,
+                        onPressed: scoring.currentFrameModel.remainingPins == 10
+                            ? strikeRoll
+                            : null,
+                        child: const Text('Strike Roll'),
+                      ),
+                      const SizedBox(height: 20),
+                      MaterialButton(
+                        color: Colors.red,
+                        onPressed: gutterRoll,
+                        child: const Text('Gutter Roll'),
+                      ),
+                      const SizedBox(height: 20),
+                      MaterialButton(
+                        color: Colors.redAccent,
+                        onPressed: restart,
+                        child: const Text('Restart'),
+                      ),
                     ],
-                  ),
-
-                  // MaterialButton(
-                  //   color: Colors.yellow,
-                  //   onPressed: indicatedRoll,
-                  //   child: const Text('Indicated Roll'),
-                  // ),
-                  const SizedBox(height: 20),
-                  MaterialButton(
-                    color: Colors.green,
-                    onPressed: scoring.curentFrameModel.remainingPins == 10
-                        ? strikeRoll
-                        : null,
-                    child: const Text('Strike Roll'),
-                  ),
-                  const SizedBox(height: 20),
-                  MaterialButton(
-                    color: Colors.red,
-                    onPressed: gutterRoll,
-                    child: const Text('Gutter Roll'),
-                  ),
-                  const SizedBox(height: 20),
-                  MaterialButton(
-                    color: Colors.redAccent,
-                    onPressed: restart,
-                    child: const Text('Restart'),
                   ),
                 ],
               ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -114,7 +127,7 @@ class _MainScreenState extends State<MainScreen> {
         width: 20,
         child: MaterialButton(
           color: Colors.grey,
-          onPressed: scoring.curentFrameModel.remainingPins >= e
+          onPressed: scoring.currentFrameModel.remainingPins >= e
               ? () => indicatedRoll(e)
               : null,
           child: Text(e.toString()),
@@ -142,7 +155,12 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   void randomroll() {
-    final knockedPin = Random().nextInt(scoring.curentFrameModel.remainingPins);
+    late final int knockedPin;
+    if (scoring.currentFrameModel.runtimeType == FinalFrameModel) {
+      knockedPin = Random().nextInt(10);
+    } else {
+      knockedPin = Random().nextInt(scoring.currentFrameModel.remainingPins);
+    }
     setState(() {
       scoring.roll(knockedPin);
     });

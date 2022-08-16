@@ -14,4 +14,30 @@ class RegularFrameModel extends FrameModel {
 
   @override
   int get remainingPins => 10 - totalTurnScore;
+
+  @override
+  String get firstScoreDisplay {
+    switch (frameState) {
+      case FrameState.none:
+        if ((first ?? 0) == 0) return '-';
+        return '${first ?? ''}';
+      case FrameState.isStrike:
+        return '';
+      case FrameState.isSpare:
+        return '${first ?? ''}';
+    }
+  }
+
+  @override
+  String get secondScoreDisplay {
+    switch (frameState) {
+      case FrameState.none:
+        if ((second ?? 0) == 0) return '-';
+        return '${second ?? ''}';
+      case FrameState.isStrike:
+        return 'X';
+      case FrameState.isSpare:
+        return '/';
+    }
+  }
 }

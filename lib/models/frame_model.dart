@@ -1,5 +1,4 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
-enum FrameTurn { waiting, first, second, third, ended }
+enum FrameTurn { waiting, first, second, third }
 
 enum FrameState { none, isStrike, isSpare }
 
@@ -22,4 +21,7 @@ abstract class FrameModel {
 
   int get totalTurnScore;
   int get remainingPins;
+
+  String get firstScoreDisplay;
+  String get secondScoreDisplay;
 }

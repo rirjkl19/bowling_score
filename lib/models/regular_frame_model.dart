@@ -19,7 +19,6 @@ class RegularFrameModel extends FrameModel {
   String get firstScoreDisplay {
     switch (frameState) {
       case FrameState.none:
-        if ((first ?? 0) == 0) return '-';
         return '${first ?? ''}';
       case FrameState.isStrike:
         return '';
@@ -32,7 +31,6 @@ class RegularFrameModel extends FrameModel {
   String get secondScoreDisplay {
     switch (frameState) {
       case FrameState.none:
-        if ((second ?? 0) == 0) return '-';
         return '${second ?? ''}';
       case FrameState.isStrike:
         return 'X';

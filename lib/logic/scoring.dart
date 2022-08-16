@@ -27,11 +27,6 @@ class Scoring {
     });
   }
 
-  void undoRoll() {
-    currentFrameId--;
-    frames[currentFrameId];
-  }
-
   void roll(int knockedPin) {
     if (frames[currentFrameId].runtimeType == RegularFrameModel) {
       switch (frames[currentFrameId].frameTurn) {
@@ -48,6 +43,7 @@ class Scoring {
               ..frameTurn = FrameTurn.ended;
 
             _handleDoubleStrikeFirstTurn();
+            _handleSpareFirstTurn();
             _moveNextFrame();
           } else {
             // * Regular roll
@@ -79,6 +75,7 @@ class Scoring {
               ..frameTurn = FrameTurn.ended;
 
             _handleDoubleStrikeSecondTurn();
+            _handleOneStrikeSecondTurn();
             _handleAddTotalSecondTurn();
 
             _moveNextFrame();
@@ -122,7 +119,7 @@ class Scoring {
     if (frames[currentFrameId - 1].frameState == FrameState.isSpare) {
       final prevTotal = (frames[currentFrameId - 2].total ?? 0) +
           frames[currentFrameId - 1].totalTurnScore +
-          (frames[currentFrameId].first ?? 0);
+          (frames[currentFrameId].totalTurnScore);
 
       frames[currentFrameId - 1].total = prevTotal;
     }
@@ -168,6 +165,8 @@ class Scoring {
       // Set current frame's total
       frames[currentFrameId].total = curTotal;
     } else {
+      // if (frames[currentFrameId - 1].frameState == FrameState.isSpare) {}
+
       final curTotal = (frames[currentFrameId - 1].total ?? 0) +
           frames[currentFrameId].totalTurnScore;
       // Set current frame's total

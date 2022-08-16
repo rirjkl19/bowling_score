@@ -59,7 +59,9 @@ class _MainScreenState extends State<MainScreen> {
                   const SizedBox(height: 20),
                   MaterialButton(
                     color: Colors.green,
-                    onPressed: strikeRoll,
+                    onPressed: scoring.curentFrameModel.remainingPins == 10
+                        ? strikeRoll
+                        : null,
                     child: const Text('Strike Roll'),
                   ),
                   const SizedBox(height: 20),
@@ -68,17 +70,7 @@ class _MainScreenState extends State<MainScreen> {
                     onPressed: gutterRoll,
                     child: const Text('Gutter Roll'),
                   ),
-                ],
-              ),
-              const SizedBox(width: 20),
-              Column(
-                children: [
-                  MaterialButton(
-                    color: Colors.amber,
-                    onPressed: undoRoll,
-                    child: const Text('Reverse Roll'),
-                  ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
                   MaterialButton(
                     color: Colors.redAccent,
                     onPressed: restart,
@@ -139,10 +131,5 @@ class _MainScreenState extends State<MainScreen> {
     setState(() {
       scoring.roll(0);
     });
-  }
-
-  void undoRoll() {
-    // TODO: Do a undo roll
-    throw UnimplementedError('Undo roll is unimplemented yet');
   }
 }

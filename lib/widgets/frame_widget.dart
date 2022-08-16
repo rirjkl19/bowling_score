@@ -1,3 +1,4 @@
+import 'package:bowling_score/models/final_frame_model.dart';
 import 'package:bowling_score/models/frame_model.dart';
 import 'package:flutter/material.dart';
 
@@ -5,18 +6,11 @@ class FrameWidget extends StatelessWidget {
   const FrameWidget({
     Key? key,
     required this.isSelected,
-    required this.frameState,
-    this.firstScore,
-    this.secondScore,
-    this.thirdScore,
-    this.totalScore,
+    required this.model,
   }) : super(key: key);
+
   final bool isSelected;
-  final FrameState frameState;
-  final int? firstScore;
-  final int? secondScore;
-  final int? thirdScore;
-  final int? totalScore;
+  final FrameModel model;
 
   @override
   Widget build(BuildContext context) {
@@ -36,24 +30,35 @@ class FrameWidget extends StatelessWidget {
             children: [
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: Text('$firstScore'),
+                child: Text('${model.first ?? ''}'),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 4),
                 decoration: BoxDecoration(border: Border.all()),
-                child: Text('$secondScore'),
+                child: Text(secondScoreDisplay),
               ),
-              if (thirdScore != null)
+              if (model.runtimeType == FinalFrameModel)
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 4),
                   decoration: BoxDecoration(border: Border.all()),
-                  child: Text('$thirdScore'),
+                  child: Text('${(model as FinalFrameModel).third ?? ''}'),
                 ),
             ],
           ),
-          Text('$totalScore'),
+          Text('${model.total ?? ''}'),
         ],
       ),
     );
+  }
+
+  String get secondScoreDisplay {
+    switch (model.frameState) {
+      case FrameState.none:
+        return '${model.second ?? ''}';
+      case FrameState.isStrike:
+        return 'X';
+      case FrameState.isSpare:
+        return '/';
+    }
   }
 }

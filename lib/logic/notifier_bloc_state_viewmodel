@@ -1,0 +1,2 @@
+I didn't use any opinionated state management approach as I don't know what the PDAX uses.
+So I will be sticking with setState -matt
